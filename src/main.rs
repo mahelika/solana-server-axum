@@ -51,7 +51,7 @@ struct HealthResponse {
 }
 
 async fn serve_html() -> Html<&'static str> {
-    Html(include_str!("../static/index.html"))
+    Html(include_str!("../public/index.html"))
 }
 
 // async fn serve_html() -> impl axum::response::IntoResponse {
