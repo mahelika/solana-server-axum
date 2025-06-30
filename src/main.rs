@@ -10,7 +10,6 @@ use solana_client::rpc_client::RpcClient;
 use solana_sdk::{native_token::LAMPORTS_PER_SOL, pubkey::Pubkey};
 use std::{env, str::FromStr};
 use tokio::net::TcpListener;
-use tokio::time::{sleep, Duration};
 use tower_http::cors::CorsLayer;
 
 #[derive(Deserialize)]
