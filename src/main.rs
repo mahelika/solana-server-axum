@@ -33,10 +33,12 @@ struct AirdropRequest {
 
 #[derive(Serialize)]
 struct AirdropResponse {
+    success: bool,
+    message: String,
     wallet: String,
-    previous_balance_lamports: u64,
-    new_balance_lamports: u64,
-    new_balance_sol: f64,
+    airdrop_amount_sol: u64,
+    transaction_signature: String,
+    explorer_url: String,
 }
 
 #[derive(Serialize)]
@@ -121,18 +123,6 @@ async fn get_airdrop(
         }
     };
 
-    let old_balance = match client.get_balance(&pubkey) {
-        Ok(balance) => balance,
-        Err(e) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                ResponseJson(ErrorResponse {
-                    error: format!("Failed to get initial balance: {}", e),
-                }),
-            ));
-        }
-    };
-
     let lamports_amount = payload.sol * LAMPORTS_PER_SOL;
     
     if lamports_amount > 2 * LAMPORTS_PER_SOL {
@@ -156,31 +146,17 @@ async fn get_airdrop(
         }
     };
 
-    println!(
-        "Airdrop txn: https://explorer.solana.com/tx/{}?cluster=devnet",
-        sig
-    );
-
-    // Wait for confirmation
-    sleep(Duration::from_secs(10)).await;
-
-    let new_balance = match client.get_balance(&pubkey) {
-        Ok(balance) => balance,
-        Err(e) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                ResponseJson(ErrorResponse {
-                    error: format!("Failed to get new balance: {}", e),
-                }),
-            ));
-        }
-    };
+    let explorer_url = format!("https://explorer.solana.com/tx/{}?cluster=devnet", sig);
+    
+    println!("Airdrop txn: {}", explorer_url);
 
     Ok(ResponseJson(AirdropResponse {
+        success: true,
+        message: format!("Airdrop of {} SOL requested successfully! Use the 'Check Balance' button to see your updated balance.", payload.sol),
         wallet: payload.wallet,
-        previous_balance_lamports: old_balance,
-        new_balance_lamports: new_balance,
-        new_balance_sol: new_balance as f64 / LAMPORTS_PER_SOL as f64,
+        airdrop_amount_sol: payload.sol,
+        transaction_signature: sig.to_string(),
+        explorer_url,
     }))
 }
 
